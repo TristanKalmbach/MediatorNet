@@ -133,6 +133,70 @@ public class UserController : ControllerBase
 
 ## Advanced Features
 
+### Result Pattern
+
+MediatorNet includes a Result pattern implementation for cleaner error handling without exceptions:
+
+```csharp
+// Define request with Result return type
+public record UpdateUserCommand(int UserId, string Email) : IRequest<Result<User>>;
+
+// Handler returns Success or Failure
+public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Result<User>>
+{
+    private readonly IUserRepository _repository;
+
+    public UpdateUserCommandHandler(IUserRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async ValueTask<Result<User>> HandleAsync(UpdateUserCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _repository.GetUserByIdAsync(request.UserId, cancellationToken);
+        if (user is null)
+            return Result<User>.Failure($"User with ID {request.UserId} not found");
+            
+        if (!IsValidEmail(request.Email))
+            return Result<User>.Failure("Invalid email format");
+            
+        user.Email = request.Email;
+        await _repository.UpdateUserAsync(user, cancellationToken);
+        return Result<User>.Success(user);
+    }
+}
+
+// Usage in controller
+public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto, CancellationToken cancellationToken)
+{
+    var result = await _mediator.SendAsync(new UpdateUserCommand(id, dto.Email), cancellationToken);
+    
+    // Convert to appropriate HTTP response
+    return result.ToActionResult();
+}
+```
+
+#### ASP.NET Core Integration
+
+MediatorNet provides extension methods to easily convert Results to appropriate ASP.NET Core responses:
+
+```csharp
+// Basic conversion - returns 200 OK or 400 Bad Request
+return result.ToActionResult();
+
+// Custom handling of success/failure
+return result.ToActionResult(
+    value => new OkObjectResult(new { Data = value, Message = "Update successful" }),
+    error => new BadRequestObjectResult(new { Error = error })
+);
+
+// Handle creation scenarios - returns 201 Created or 400 Bad Request
+return result.ToCreatedResult($"/api/users/{result.Value.Id}");
+
+// Handle not found cases - returns 404 Not Found when error contains "not found"
+return result.ToActionResultWithNotFound();
+```
+
 ### Notifications (Events)
 
 Define a notification:
