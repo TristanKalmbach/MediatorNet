@@ -27,6 +27,31 @@ public static class ServiceCollectionExtensions
     }
     
     /// <summary>
+    /// Adds MediatorNet core services to the service collection and configures options
+    /// </summary>
+    /// <param name="services">The service collection</param>
+    /// <param name="configureOptions">Action to configure MediatorNet options</param>
+    /// <returns>The service collection for method chaining</returns>
+    public static IServiceCollection AddMediatorNet(
+        this IServiceCollection services,
+        Action<MediatorNetOptions> configureOptions)
+    {
+        var options = new MediatorNetOptions();
+        configureOptions(options);
+        
+        // Register mediator
+        services.TryAddTransient<IMediator, Mediator>();
+        
+        // Apply options
+        foreach (var behaviorType in options.Behaviors)
+        {
+            services.TryAddTransient(behaviorType);
+        }
+        
+        return services;
+    }
+    
+    /// <summary>
     /// Adds MediatorNet core services to the service collection and registers handlers from the specified assemblies
     /// </summary>
     /// <param name="services">The service collection</param>
@@ -256,5 +281,39 @@ public static class ServiceCollectionExtensions
     {
         services.TryAddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
         return services;
+    }
+}
+
+/// <summary>
+/// Options for configuring MediatorNet
+/// </summary>
+public class MediatorNetOptions
+{
+    private readonly List<Type> _behaviors = new List<Type>();
+    
+    /// <summary>
+    /// Gets the collection of registered behavior types
+    /// </summary>
+    public IReadOnlyList<Type> Behaviors => _behaviors;
+    
+    /// <summary>
+    /// Adds a pipeline behavior to the mediator pipeline
+    /// </summary>
+    /// <param name="behaviorType">The type of behavior to add</param>
+    /// <returns>The options object for chaining</returns>
+    public MediatorNetOptions AddBehavior(Type behaviorType)
+    {
+        _behaviors.Add(behaviorType);
+        return this;
+    }
+    
+    /// <summary>
+    /// Adds a pipeline behavior to the mediator pipeline
+    /// </summary>
+    /// <typeparam name="TBehavior">The type of behavior to add</typeparam>
+    /// <returns>The options object for chaining</returns>
+    public MediatorNetOptions AddBehavior<TBehavior>() where TBehavior : class
+    {
+        return AddBehavior(typeof(TBehavior));
     }
 }

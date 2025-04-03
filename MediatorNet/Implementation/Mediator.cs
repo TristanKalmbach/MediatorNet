@@ -39,7 +39,7 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
             var currentBehavior = behavior;
             var previousHandlerDelegate = handlerDelegate;
             
-            handlerDelegate = () => currentBehavior.HandleAsync(request, previousHandlerDelegate, cancellationToken);
+            handlerDelegate = async () => await currentBehavior.HandleAsync(request, previousHandlerDelegate, cancellationToken);
         }
         
         // Execute the request pipeline
@@ -59,7 +59,7 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
             .ToArray();
         
         // Create request handler delegate that will process the actual handler
-        RequestHandlerDelegate<Unit> handlerDelegate = () => ExecuteRequestHandlerAsync(request, cancellationToken);
+        RequestHandlerDelegate<Unit> handlerDelegate = async () => await ExecuteRequestHandlerAsync(request, cancellationToken);
         
         // Execute the pipeline behaviors in sequence
         foreach (var behavior in pipelineBehaviors.Reverse())
@@ -67,7 +67,7 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
             var currentBehavior = behavior;
             var previousHandlerDelegate = handlerDelegate;
             
-            handlerDelegate = () => currentBehavior.HandleAsync(request, previousHandlerDelegate, cancellationToken);
+            handlerDelegate = async () => await currentBehavior.HandleAsync(request, previousHandlerDelegate, cancellationToken);
         }
         
         // Execute the request pipeline

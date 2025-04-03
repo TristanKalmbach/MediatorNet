@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatorNet", "MediatorNet\MediatorNet.csproj", "{473DBE41-3460-44E0-993A-CEBA10712997}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatorNet.Tests", "MediatorNet.Tests\MediatorNet.Tests.csproj", "{8EA1E155-37C7-4C56-BE79-C358CE09B722}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{473DBE41-3460-44E0-993A-CEBA10712997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{473DBE41-3460-44E0-993A-CEBA10712997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{473DBE41-3460-44E0-993A-CEBA10712997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EA1E155-37C7-4C56-BE79-C358CE09B722}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EA1E155-37C7-4C56-BE79-C358CE09B722}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EA1E155-37C7-4C56-BE79-C358CE09B722}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EA1E155-37C7-4C56-BE79-C358CE09B722}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

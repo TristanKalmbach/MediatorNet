@@ -4,6 +4,28 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        
+        <!-- NuGet package properties -->
+        <PackageId>MediatorNet</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>MediatorNet Contributors</Authors>
+        <Company>MediatorNet Contributors</Company>
+        <Description>MediatorNet is a high-performance, feature-rich mediator pattern implementation for .NET 8+ applications.</Description>
+        <Copyright>Copyright © 2025 MediatorNet Contributors</Copyright>
+        <PackageTags>mediator;cqrs;ddd;dotnet;dotnetcore;aspnetcore;events</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/yourusername/MediatorNet</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/yourusername/MediatorNet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        
+        <!-- XML documentation generation -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn> <!-- Don't warn on missing XML comments -->
+
+        <!-- Strong naming and assembly info -->
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,6 +34,11 @@
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
         <PackageReference Include="FluentValidation" Version="11.9.0" />
         <PackageReference Include="Scrutor" Version="4.2.2" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\LICENSE.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
