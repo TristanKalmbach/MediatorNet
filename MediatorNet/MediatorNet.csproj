@@ -8,10 +8,10 @@
         <!-- NuGet package properties -->
         <PackageId>MediatorNet</PackageId>
         <Version>1.0.0</Version>
-        <Authors>MediatorNet Contributors</Authors>
+        <Authors>Tristan Kalmbach, MediatorNet Contributors</Authors>
         <Company>MediatorNet Contributors</Company>
         <Description>MediatorNet is a high-performance, feature-rich mediator pattern implementation for .NET 8+ applications.</Description>
-        <Copyright>Copyright © 2025 MediatorNet Contributors</Copyright>
+        <Copyright>Copyright © 2025 Tristan Kalmbach, MediatorNet Contributors</Copyright>
         <PackageTags>mediator;cqrs;ddd;dotnet;dotnetcore;aspnetcore;events</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -26,6 +26,7 @@
         <!-- Strong naming and assembly info -->
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
+        <Title>Mediator .NET</Title>
     </PropertyGroup>
 
     <ItemGroup>
