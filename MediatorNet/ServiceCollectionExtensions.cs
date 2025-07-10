@@ -1,5 +1,6 @@
 namespace MediatorNet;
 
+using System.Collections.Concurrent;
 using System.Reflection;
 using Abstractions;
 using Behaviors;
@@ -20,7 +21,7 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for method chaining</returns>
     public static IServiceCollection AddMediatorNet(this IServiceCollection services)
     {
-        // Register mediator
+        // Register optimized mediator
         services.TryAddTransient<IMediator, Mediator>();
             
         return services;
@@ -39,7 +40,7 @@ public static class ServiceCollectionExtensions
         var options = new MediatorNetOptions();
         configureOptions(options);
         
-        // Register mediator
+        // Register optimized mediator
         services.TryAddTransient<IMediator, Mediator>();
         
         // Apply options
@@ -92,15 +93,16 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, 
         params Assembly[] assemblies)
     {
-        // Register request handlers implementing IRequestHandler<TRequest,TResponse>
-        var requestHandlersWithResponse = new List<(Type serviceType, Type implementationType)>();
-        var requestHandlerTypes = new List<(Type serviceType, Type implementationType)>();
+        // Use parallel processing for improved performance when scanning large assemblies
+        var requestHandlersWithResponse = new ConcurrentBag<(Type serviceType, Type implementationType)>();
+        var requestHandlerTypes = new ConcurrentBag<(Type serviceType, Type implementationType)>();
         
         // Find and register all handler implementations
-        foreach (var assembly in assemblies)
+        Parallel.ForEach(assemblies, assembly =>
         {
-            foreach (var implementationType in assembly.GetTypes()
-                .Where(t => !t.IsAbstract && !t.IsInterface))
+            var types = assembly.GetTypes();
+            
+            Parallel.ForEach(types.Where(t => !t.IsAbstract && !t.IsInterface), implementationType =>
             {
                 // Find all implemented interfaces that are IRequestHandler<,>
                 foreach (var interfaceType in implementationType.GetInterfaces())
@@ -118,8 +120,8 @@ public static class ServiceCollectionExtensions
                         requestHandlerTypes.Add((interfaceType, implementationType));
                     }
                 }
-            }
-        }
+            });
+        });
         
         // Register all discovered handlers
         foreach (var (serviceType, implementationType) in requestHandlersWithResponse)
@@ -145,14 +147,15 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, 
         params Assembly[] assemblies)
     {
-        // Register notification handlers implementing INotificationHandler<TNotification>
-        var notificationHandlerTypes = new List<(Type serviceType, Type implementationType)>();
+        // Use parallel processing for improved performance when scanning large assemblies
+        var notificationHandlerTypes = new ConcurrentBag<(Type serviceType, Type implementationType)>();
         
         // Find and register all handler implementations
-        foreach (var assembly in assemblies)
+        Parallel.ForEach(assemblies, assembly =>
         {
-            foreach (var implementationType in assembly.GetTypes()
-                .Where(t => !t.IsAbstract && !t.IsInterface))
+            var types = assembly.GetTypes();
+            
+            Parallel.ForEach(types.Where(t => !t.IsAbstract && !t.IsInterface), implementationType =>
             {
                 // Find all implemented interfaces that are INotificationHandler<>
                 foreach (var interfaceType in implementationType.GetInterfaces())
@@ -163,8 +166,8 @@ public static class ServiceCollectionExtensions
                         notificationHandlerTypes.Add((interfaceType, implementationType));
                     }
                 }
-            }
-        }
+            });
+        });
         
         // Register all discovered handlers
         foreach (var (serviceType, implementationType) in notificationHandlerTypes)
@@ -185,14 +188,15 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, 
         params Assembly[] assemblies)
     {
-        // Register stream request handlers implementing IStreamRequestHandler<TRequest, TResponse>
-        var streamRequestHandlerTypes = new List<(Type serviceType, Type implementationType)>();
+        // Use parallel processing for improved performance when scanning large assemblies
+        var streamRequestHandlerTypes = new ConcurrentBag<(Type serviceType, Type implementationType)>();
         
         // Find and register all handler implementations
-        foreach (var assembly in assemblies)
+        Parallel.ForEach(assemblies, assembly =>
         {
-            foreach (var implementationType in assembly.GetTypes()
-                .Where(t => !t.IsAbstract && !t.IsInterface))
+            var types = assembly.GetTypes();
+            
+            Parallel.ForEach(types.Where(t => !t.IsAbstract && !t.IsInterface), implementationType =>
             {
                 // Find all implemented interfaces that are IStreamRequestHandler<,>
                 foreach (var interfaceType in implementationType.GetInterfaces())
@@ -203,8 +207,8 @@ public static class ServiceCollectionExtensions
                         streamRequestHandlerTypes.Add((interfaceType, implementationType));
                     }
                 }
-            }
-        }
+            });
+        });
         
         // Register all discovered handlers
         foreach (var (serviceType, implementationType) in streamRequestHandlerTypes)
