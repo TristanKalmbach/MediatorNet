@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute("MediatorNet is a high-performance, feature-rich mediator pattern implementation f" +
     "or .NET 8+ applications.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b8977388387b9a823b3f743d55b185c97168f66")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+05650ae22247ca8bb6df12ff9a3c76beaf44e470")]
 [assembly: System.Reflection.AssemblyProductAttribute("MediatorNet")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MediatorNet")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

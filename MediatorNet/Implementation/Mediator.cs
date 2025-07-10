@@ -14,6 +14,9 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
     
     // Cache for handler types to avoid expensive reflection lookups per request
     private static readonly ConcurrentDictionary<Type, Type> _handlerCache = new();
+    // Cache for handler delegates to avoid reflection on every call
+    private static readonly ConcurrentDictionary<Type, Func<object, object, CancellationToken, ValueTask<object>>> _handlerDelegateCache = new();
+    private static readonly ConcurrentDictionary<Type, Func<object, object, CancellationToken, ValueTask>> _voidHandlerDelegateCache = new();
 
     /// <inheritdoc />
     public async ValueTask<TResponse> SendAsync<TResponse>(
@@ -127,13 +130,9 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         var handler = _serviceProvider.GetService(handlerType) 
             ?? throw new InvalidOperationException($"Handler not found for stream request type {requestType.Name}");
         
-        // Invoke the handler's method
-        var method = handlerType.GetMethod("HandleAsync") 
-            ?? throw new InvalidOperationException($"HandleAsync method not found on handler type {handlerType.Name}");
-        
-        var enumerable = (IAsyncEnumerable<TResponse>)method.Invoke(
-            handler,
-            new object[] { request, cancellationToken })!;
+        // Use faster delegate-based invocation instead of reflection
+        var streamDelegate = GetOrCreateStreamDelegate<TResponse>(handlerType, requestType);
+        var enumerable = (IAsyncEnumerable<TResponse>)streamDelegate(handler, request, cancellationToken);
             
         await foreach (var item in enumerable.WithCancellation(cancellationToken))
         {
@@ -160,15 +159,10 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         var handler = _serviceProvider.GetService(handlerType) 
             ?? throw new InvalidOperationException($"Handler not found for request type {requestType.Name}");
         
-        // Invoke the handler's method
-        var method = handlerType.GetMethod("HandleAsync") 
-            ?? throw new InvalidOperationException($"HandleAsync method not found on handler type {handlerType.Name}");
-        
-        var result = await (ValueTask<TResponse>)method.Invoke(
-            handler,
-            new object[] { request, cancellationToken })!;
-            
-        return result;
+        // Use faster delegate-based invocation instead of reflection
+        var handlerDelegate = GetOrCreateHandlerDelegate<TResponse>(handlerType, requestType);
+        var result = await handlerDelegate(handler, request, cancellationToken);
+        return (TResponse)result;
     }
     
     private async ValueTask<Unit> ExecuteRequestHandlerAsync(
@@ -190,14 +184,43 @@ public sealed class Mediator(IServiceProvider serviceProvider) : IMediator
         var handler = _serviceProvider.GetService(handlerType) 
             ?? throw new InvalidOperationException($"Handler not found for request type {requestType.Name}");
         
-        // Invoke the handler's method
-        var method = handlerType.GetMethod("HandleAsync") 
-            ?? throw new InvalidOperationException($"HandleAsync method not found on handler type {handlerType.Name}");
-        
-        await (ValueTask)method.Invoke(
-            handler,
-            new object[] { request, cancellationToken })!;
-            
+        // Use faster delegate-based invocation instead of reflection
+        var handlerDelegate = GetOrCreateVoidHandlerDelegate(handlerType, requestType);
+        await handlerDelegate(handler, request, cancellationToken);
         return Unit.Value;
+    }
+
+    private static Func<object, object, CancellationToken, ValueTask<object>> GetOrCreateHandlerDelegate<TResponse>(Type handlerType, Type requestType)
+    {
+        return _handlerDelegateCache.GetOrAdd(handlerType, static handlerType =>
+        {
+            var method = handlerType.GetMethod("HandleAsync")!;
+            return (handler, request, cancellationToken) =>
+            {
+                var task = (ValueTask<TResponse>)method.Invoke(handler, new object[] { request, cancellationToken })!;
+                return new ValueTask<object>(task.AsTask().ContinueWith(t => (object)t.Result!, cancellationToken));
+            };
+        });
+    }
+
+    private static Func<object, object, CancellationToken, ValueTask> GetOrCreateVoidHandlerDelegate(Type handlerType, Type requestType)
+    {
+        return _voidHandlerDelegateCache.GetOrAdd(handlerType, static handlerType =>
+        {
+            var method = handlerType.GetMethod("HandleAsync")!;
+            return (handler, request, cancellationToken) =>
+            {
+                return (ValueTask)method.Invoke(handler, new object[] { request, cancellationToken })!;
+            };
+        });
+    }
+
+    private static Func<object, object, CancellationToken, object> GetOrCreateStreamDelegate<TResponse>(Type handlerType, Type requestType)
+    {
+        var method = handlerType.GetMethod("HandleAsync")!;
+        return (handler, request, cancellationToken) =>
+        {
+            return method.Invoke(handler, new object[] { request, cancellationToken })!;
+        };
     }
 }

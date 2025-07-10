@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection for method chaining</returns>
     public static IServiceCollection AddMediatorNet(this IServiceCollection services)
     {
-        // Register mediator
+        // Register optimized mediator
         services.TryAddTransient<IMediator, Mediator>();
             
         return services;
@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
         var options = new MediatorNetOptions();
         configureOptions(options);
         
-        // Register mediator
+        // Register optimized mediator
         services.TryAddTransient<IMediator, Mediator>();
         
         // Apply options
